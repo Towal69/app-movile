@@ -64,7 +64,7 @@
         android:textStyle="bold"
         android:textSize="24sp"
         app:endIconMode="password_toggle"
-        app:endIconDrawable="@drawable/baseline_lock_24">
+        app:startIconDrawable="@drawable/baseline_lock_24">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/PasswordEditText"
@@ -90,6 +90,23 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="15dp"
         app:icon="@drawable/baseline_login_24"
+        />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:text="Register"
+        android:clickable="true"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton"
+        app:backgroundTint="@color/teal_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:icon="@drawable/baseline_person_add_24"
+
         />
 
 
