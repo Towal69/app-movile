@@ -7,5 +7,34 @@
     android:layout_height="match_parent"
     tools:context=".view.login.LoginFragment">
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/textViewEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_contraintStart_toStartOf="parent"
+        app:layout_contraintTop_toTopOf="parent"
+        android:text="Email"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="66dp"
+        android:layout_marginBottom="16dp"
+
+        />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/EmailTextInputLayout"
+        app:layout_constraintBottom_toBottomOf="@+id/textViewEmail"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:startIconDrawable="@drawable/baseline_email_24"
+        android:text="email"
+        android:hint="email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        />
+
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
