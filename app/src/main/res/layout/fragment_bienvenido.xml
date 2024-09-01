@@ -3,12 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.logoTowal69.towal69Fragment">
+    tools:context=".view.bienvenido.BienvenidoFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <ImageView
+        android:id="@+id/logoImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
-
+        android:src="@drawable/towal69"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+         />
 </FrameLayout>

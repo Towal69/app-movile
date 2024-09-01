@@ -89,6 +89,7 @@ class LoginFragment : Fragment() {
                     // Inicio de sesión exitoso
                     Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                     // Navegar a la pantalla principal o donde desees
+                        findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
                 } else {
                     // Si falla el inicio de sesión
                    handleLoginError(task.exception)
