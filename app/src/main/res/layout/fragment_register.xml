@@ -97,7 +97,7 @@
         app:startIconDrawable="@drawable/baseline_lock_24">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/PasswordEditText"
+            android:id="@+id/PasswordRegisterEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
