@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.myaplicacion.R
 import com.example.myaplicacion.databinding.FragmentRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -55,6 +57,7 @@ class RegisterFragment : Fragment() {
                     // Registro exitoso
                     Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
                     // Navegar a la pantalla de login o donde desees
+                    findNavController().navigate(R.id.action_registerFragment2_to_loginFragment3)
                 } else {
                     // Si falla el registro
                     Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
