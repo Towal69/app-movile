@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1012318125165",
+    "project_id": "towal69",
+    "storage_bucket": "towal69.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1012318125165:android:942b56d2bc8bfbf3825364",
+        "android_client_info": {
+          "package_name": "com.example.myaplicacion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEpUZNeoI3jRX01SmRKYrhlaildulNdgE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
