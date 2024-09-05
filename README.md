@@ -2,7 +2,6 @@
 
 1. [Introducción](#introducción)
 2. [Descripción General](#descripción-general)
-   - [Características principales](#características-principales)
 3. [Funcionalidades de la Aplicación](#funcionalidades-de-la-aplicación)
 4. [Arquitectura de Navegación](#arquitectura-de-navegación)
 5. [Bibliotecas Utilizadas](#bibliotecas-utilizadas)
@@ -12,8 +11,6 @@
    2. [Dependencias de Firebase](#dependencias-de-firebase)
    3. [Inicialización de FirebaseAuth](#inicialización-de-firebaseauth)
    4. [Autenticación de Usuarios](#autenticación-de-usuarios)
-      - [Registro de usuario](#registro-de-usuario)
-      - [Inicio de sesión](#inicio-de-sesión)
 8. [Conclusión](#conclusión)
 
 # Introducción
@@ -84,7 +81,7 @@ Se utilizó el componente de navegación de Android para manejar la navegación 
        implementation("com.google.firebase:firebase-firestore-ktx")
    }
    ```
-3. **Inicialización de FirebaseAuth**: 
+3. ##### **Inicialización de FirebaseAuth**: 
 
 FirebaseAuth se inicializa en los fragmentos que manejan el login y el registro de usuarios. La instancia de FirebaseAuth es necesaria para autenticar usuarios.
 
@@ -96,7 +93,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
     auth = FirebaseAuth.getInstance()
 }
 ```
-4. **Autenticación de Usuarios**: 
+4. ### **Autenticación de Usuarios**: 
 
 Se utiliza FirebaseAuth para registrar e iniciar sesión a los usuarios con las siguientes funciones:
 
