@@ -1,5 +1,9 @@
 # Implementacion de Firebase Authentication en Android
 
+![portada](images-md/portada.png)
+
+# Tabla de Contenidos
+
 1. [Introducción](#introducción)
 2. [Descripción General](#descripción-general)
 3. [Funcionalidades de la Aplicación](#funcionalidades-de-la-aplicación)
@@ -132,6 +136,13 @@ private fun loginUser(email: String, password: String) {
         }
 }
 ```
+
+# Registro de usuarios en Firebase
+En la imagen a continuación se muestra el registro de un usuario en Firebase Authentication.
+
+![Registro en Firebase](images-md/registroFirebase.jpeg)
+
+
 # Conclusión
 
 Firebase Authentication es fundamental en este proyecto, ya que facilita de manera eficiente la gestión de usuarios mediante el registro e inicio de sesión con correo electrónico y contraseña. Su integración sencilla con Android, junto con la seguridad y escalabilidad de Google, permite a la aplicación ofrecer una experiencia de autenticación segura y confiable, sin necesidad de desarrollar una infraestructura compleja desde cero. Esto optimiza el tiempo de desarrollo y mejora la experiencia del usuario.
