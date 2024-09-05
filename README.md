@@ -4,9 +4,6 @@
 2. [Descripción General](#descripción-general)
    - [Características principales](#características-principales)
 3. [Funcionalidades de la Aplicación](#funcionalidades-de-la-aplicación)
-   1. [Pantalla de Login](#pantalla-de-login)
-   2. [Pantalla de Registro](#pantalla-de-registro)
-   3. [Pantalla de Bienvenida](#pantalla-de-bienvenida)
 4. [Arquitectura de Navegación](#arquitectura-de-navegación)
 5. [Bibliotecas Utilizadas](#bibliotecas-utilizadas)
 6. [Requisitos Técnicos](#requisitos-técnicos)
@@ -17,6 +14,7 @@
    4. [Autenticación de Usuarios](#autenticación-de-usuarios)
       - [Registro de usuario](#registro-de-usuario)
       - [Inicio de sesión](#inicio-de-sesión)
+8. [Conclusión](#conclusión)
 
 # Introducción
 
@@ -76,7 +74,7 @@ Se utilizó el componente de navegación de Android para manejar la navegación 
    - Se configuró Firebase en el proyecto Android. Esto incluye añadir el archivo `google-services.json` al directorio `app` y configurar el SDK de Firebase en el archivo `build.gradle`.
    - En el archivo `build.gradle.kts` del nivel de la aplicación, se agregó el plugin de servicios de Google.
 
-2. **Dependencias de Firebase**:
+2. ##### **Dependencias de Firebase**:
    En el archivo `build.gradle.kts`, se agregaron las siguientes dependencias para Firebase:
    ```kotlin
    dependencies {
@@ -137,4 +135,6 @@ private fun loginUser(email: String, password: String) {
         }
 }
 ```
+# Conclusión
 
+Firebase Authentication es fundamental en este proyecto, ya que facilita de manera eficiente la gestión de usuarios mediante el registro e inicio de sesión con correo electrónico y contraseña. Su integración sencilla con Android, junto con la seguridad y escalabilidad de Google, permite a la aplicación ofrecer una experiencia de autenticación segura y confiable, sin necesidad de desarrollar una infraestructura compleja desde cero. Esto optimiza el tiempo de desarrollo y mejora la experiencia del usuario.
