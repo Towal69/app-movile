@@ -10,6 +10,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.myaplicacion.R
 import com.example.myaplicacion.databinding.FragmentRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class RegisterFragment : Fragment() {
 
@@ -34,12 +35,13 @@ class RegisterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonRegister.setOnClickListener {
+            val nombre = binding.nombreEditText.text.toString()
             val email = binding.EmailRegisterEditText.text.toString()
             val password = binding.PasswordRegisterEditText.text.toString()
             val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
 
             if (email.isNotEmpty() && password.isNotEmpty() && password == passwordRepeat) {
-                registerUser(email, password)
+                registerUser(email, password, nombre)
             } else {
                 Toast.makeText(context, "Por favor, complete todos los campos correctamente", Toast.LENGTH_SHORT).show()
             }
@@ -50,12 +52,29 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    private fun registerUser(email: String, password: String) {
+    private fun registerUser(email: String, password: String, nombre: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Registro exitoso
-                    Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                    val userId = auth.currentUser?.uid
+                    val db = FirebaseFirestore.getInstance()
+                    val user = hashMapOf(
+                        "nombre" to nombre,
+                        "email" to email
+                    )
+
+                    userId?.let {
+                        db.collection("users").document(it)
+                            .set(user)
+                            .addOnSuccessListener {
+                                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(context, "Error al guardar los datos: $e", Toast.LENGTH_SHORT).show()
+                            }
+                    }
                     // Navegar a la pantalla de login o donde desees
                     findNavController().navigate(R.id.action_registerFragment2_to_loginFragment3)
                 } else {
