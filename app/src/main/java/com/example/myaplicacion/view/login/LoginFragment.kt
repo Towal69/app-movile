@@ -38,19 +38,17 @@ class LoginFragment : Fragment() {
     }
 
     private fun updateUI(user: FirebaseUser?) {
-        fun updateUI(user: FirebaseUser?) {
-            if (user != null) {
-                // Si el usuario está autenticado
-                Toast.makeText(context, "Usuario autenticado: ${user.email}", Toast.LENGTH_SHORT).show()
-                // Aquí podrías navegar a otra pantalla si lo deseas
-                findNavController().navigate(R.id.action_loginFragment3_to_registerFragment2)
-            } else {
-                // Si no hay usuario autenticado
-                Toast.makeText(context, "Por favor, inicie sesión.", Toast.LENGTH_SHORT).show()
-            }
+        if (user != null) {
+            // Si el usuario está autenticado
+            Toast.makeText(context, "Usuario autenticado: ${user.email}", Toast.LENGTH_SHORT).show()
+            // Aquí podrías navegar a otra pantalla si lo deseas
+            findNavController().navigate(R.id.action_loginFragment3_to_registerFragment2)
+        } else {
+            // Si no hay usuario autenticado
+            Toast.makeText(context, "Por favor, inicie sesión.", Toast.LENGTH_SHORT).show()
         }
-
     }
+
 
 
     override fun onCreateView(
