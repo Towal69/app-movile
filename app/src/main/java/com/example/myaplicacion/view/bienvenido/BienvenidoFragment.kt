@@ -6,11 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myaplicacion.R
+import com.example.myaplicacion.api.RetrofitService
 import com.example.myaplicacion.databinding.FragmentBienvenidoBinding
+import com.example.myaplicacion.view.products.ProductAdapter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 class BienvenidoFragment : Fragment() {
 
@@ -26,7 +31,7 @@ class BienvenidoFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         _binding = FragmentBienvenidoBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -59,6 +64,19 @@ class BienvenidoFragment : Fragment() {
                     true
                 }
                 else -> false
+            }
+        }
+
+        // Configurar el RecyclerView
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Cargar los productos de la API FakeStore
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val products = RetrofitService.api.getProducts()
+                binding.recyclerView.adapter = ProductAdapter(products)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al cargar los productos", Toast.LENGTH_SHORT).show()
             }
         }
     }

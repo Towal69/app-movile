@@ -30,7 +30,13 @@
         android:contentDescription="ScrollView"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Aquí agregarás el contenido relacionado con los productos de Fakestore -->
+        <!-- Añade el RecyclerView aquí -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp" />
 
     </androidx.core.widget.NestedScrollView>
 

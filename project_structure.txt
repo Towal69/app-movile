@@ -238,43 +238,6 @@ Archivo: ./app/src/main/res/layout/fragment_bienvenido.xml
             app:navigationIcon="@drawable/baseline_menu_24"
             app:title="" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:tabContentStart="56dp"
-            app:tabMode="scrollable">
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Biceps" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Espalda" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pectoral" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Triceps" />
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hombro" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pierna" />
-
-        </com.google.android.material.tabs.TabLayout>
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -284,7 +247,7 @@ Archivo: ./app/src/main/res/layout/fragment_bienvenido.xml
         android:contentDescription="ScrollView"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Agrega aquí tu contenido -->
+        <!-- Aquí agregarás el contenido relacionado con los productos de Fakestore -->
 
     </androidx.core.widget.NestedScrollView>
 
@@ -293,7 +256,7 @@ Archivo: ./app/src/main/res/layout/fragment_bienvenido.xml
 
 Archivo: ./app/src/main/res/layout/item_product.xml
 ------------------------------------------------------------
-<!-- item_product.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -315,6 +278,7 @@ Archivo: ./app/src/main/res/layout/item_product.xml
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="18sp"
+        android:text="Título del Producto"
         app:layout_constraintStart_toEndOf="@+id/productImage"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -323,10 +287,10 @@ Archivo: ./app/src/main/res/layout/item_product.xml
         android:id="@+id/productPrice"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:text="Precio"
         app:layout_constraintStart_toEndOf="@+id/productImage"
         app:layout_constraintTop_toBottomOf="@+id/productTitle"
         app:layout_constraintEnd_toEndOf="parent"/>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -509,14 +473,14 @@ Archivo: ./app/src/main/res/layout/main_activity.xml
 
 Archivo: ./app/src/main/res/layout/fragment_products.xml
 ------------------------------------------------------------
-<!-- fragment_products.xml -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".view.products.ProductsFragment">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
+    <!-- Tu RecyclerView u otros elementos -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
@@ -525,6 +489,7 @@ Archivo: ./app/src/main/res/layout/fragment_products.xml
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -541,7 +506,7 @@ Archivo: ./app/src/main/res/navigation/nav_graph.xml
         android:id="@+id/startFragment"
         android:name="com.example.myaplicacion.view.start.StartFragment"
         android:label="fragment_start"
-        tools:layout="@layout/fragment_start">
+        tools:layout="@layout/fragment_start" >
         <action
             android:id="@+id/action_startFragment_to_loginFragment3"
             app:destination="@id/loginFragment3" />
@@ -656,7 +621,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -694,63 +658,27 @@ class BienvenidoFragment : Fragment() {
             db.collection("users").document(it)
                 .get()
                 .addOnSuccessListener { document ->
-                    if(document != null){
+                    if (document != null) {
                         val nombre = document.getString("nombre")
                         binding.topAppBar.title = "$nombre"
-                    }else{
+                    } else {
                         Toast.makeText(context, "Error al obtener los datos del usuario", Toast.LENGTH_SHORT).show()
                     }
                 }
         }
-        binding.topAppBar.setNavigationOnClickListener {
-            showPopupMenu(it)
-        }
+
         // Configurar el botón de cierre de sesión
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-
-                R.id.search -> {
-                    Toast.makeText(context, "Search clicked", Toast.LENGTH_SHORT).show()
-                    true
-                }
                 R.id.more -> {
-                    // Cerrar sesión y navegar al fragmento de inicio de sesión
                     auth.signOut()
                     findNavController().navigate(R.id.loginFragment3)
                     true
                 }
-                R.id.menu -> {
-                    showPopupMenu(binding.topAppBar)
-                    true
-                }
                 else -> false
             }
         }
     }
-    private fun showPopupMenu(view: View) {
-        val popupMenu = PopupMenu(requireContext(), view)
-        popupMenu.inflate(R.menu.popup_menu) // Inflar el menú de categorías
-        popupMenu.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.categoria1 -> {
-                    Toast.makeText(context, "Categoría 1 seleccionada", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.categoria2 -> {
-                    Toast.makeText(context, "Categoría 2 seleccionada", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                R.id.categoria3 -> {
-                    Toast.makeText(context, "Categoría 3 seleccionada", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                else -> false
-            }
-        }
-        popupMenu.show()
-    }
-
-
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -761,7 +689,6 @@ class BienvenidoFragment : Fragment() {
 
 Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductsFragment.kt
 ------------------------------------------------------------
-// ProductsFragment.kt
 package com.example.myaplicacion.view.products
 
 import android.os.Bundle
@@ -793,6 +720,7 @@ class ProductsFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Cargar los productos de Fakestore API
         lifecycleScope.launch {
             val products = RetrofitService.api.getProducts()
             binding.recyclerView.adapter = ProductAdapter(products)
@@ -808,7 +736,6 @@ class ProductsFragment : Fragment() {
 
 Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductAdapter.kt
 ------------------------------------------------------------
-// ProductAdapter.kt
 package com.example.myaplicacion.view.products
 
 import android.view.LayoutInflater
@@ -840,7 +767,7 @@ class ProductAdapter(private val products: List<Product>) :
 
         fun bind(product: Product) {
             binding.productTitle.text = product.title
-            binding.productPrice.text = "$${product.price}"
+            binding.productPrice.text = "Precio: $${product.price}" // Precio en español
             Picasso.get().load(product.image).into(binding.productImage)
         }
     }
