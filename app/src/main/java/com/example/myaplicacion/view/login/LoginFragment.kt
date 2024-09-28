@@ -28,6 +28,7 @@ class LoginFragment : Fragment() {
         // Initialize Firebase Auth
         auth = Firebase.auth // Inicializar FirebaseAuth
     }
+
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
@@ -42,14 +43,12 @@ class LoginFragment : Fragment() {
             // Si el usuario está autenticado
             Toast.makeText(context, "Usuario autenticado: ${user.email}", Toast.LENGTH_SHORT).show()
             // Aquí podrías navegar a otra pantalla si lo deseas
-            findNavController().navigate(R.id.action_loginFragment3_to_registerFragment2)
+            findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
         } else {
             // Si no hay usuario autenticado
             Toast.makeText(context, "Por favor, inicie sesión.", Toast.LENGTH_SHORT).show()
         }
     }
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,13 +86,14 @@ class LoginFragment : Fragment() {
                     // Inicio de sesión exitoso
                     Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                     // Navegar a la pantalla principal o donde desees
-                        findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
+                    findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
                 } else {
                     // Si falla el inicio de sesión
-                   handleLoginError(task.exception)
+                    handleLoginError(task.exception)
                 }
             }
     }
+
     private fun handleLoginError(exception: Exception?) {
         exception?.let {
             val errorMessage = when (it) {
@@ -107,6 +107,7 @@ class LoginFragment : Fragment() {
             Toast.makeText(context, "Error desconocido al iniciar sesión.", Toast.LENGTH_SHORT).show()
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

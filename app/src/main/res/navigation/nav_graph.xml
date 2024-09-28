@@ -1,10 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment3">
+    app:startDestination="@id/startFragment">
 
+    <!-- Start Fragment -->
+    <fragment
+        android:id="@+id/startFragment"
+        android:name="com.example.myaplicacion.view.start.StartFragment"
+        android:label="fragment_start"
+        tools:layout="@layout/fragment_start">
+        <action
+            android:id="@+id/action_startFragment_to_loginFragment3"
+            app:destination="@id/loginFragment3" />
+        <action
+            android:id="@+id/action_startFragment_to_registerFragment2"
+            app:destination="@id/registerFragment2" />
+    </fragment>
+
+    <!-- Login Fragment -->
     <fragment
         android:id="@+id/loginFragment3"
         android:name="com.example.myaplicacion.view.login.LoginFragment"
@@ -17,6 +31,8 @@
             android:id="@+id/action_loginFragment3_to_bienvenidoFragment"
             app:destination="@id/bienvenidoFragment" />
     </fragment>
+
+    <!-- Register Fragment -->
     <fragment
         android:id="@+id/registerFragment2"
         android:name="com.example.myaplicacion.view.register.RegisterFragment"
@@ -26,6 +42,8 @@
             android:id="@+id/action_registerFragment2_to_loginFragment3"
             app:destination="@id/loginFragment3" />
     </fragment>
+
+    <!-- Bienvenido Fragment -->
     <fragment
         android:id="@+id/bienvenidoFragment"
         android:name="com.example.myaplicacion.view.bienvenido.BienvenidoFragment"

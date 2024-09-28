@@ -45,6 +45,10 @@ android {
         enable = true
     }
 
+    viewBinding {
+        enable = true
+    }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
@@ -65,6 +69,8 @@ dependencies {
     // Agrega Retrofit para consumir APIs REST
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.squareup.picasso:picasso:2.71828")
 
 
 
