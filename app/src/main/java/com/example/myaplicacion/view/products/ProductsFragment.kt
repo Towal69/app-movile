@@ -1,4 +1,3 @@
-// ProductsFragment.kt
 package com.example.myaplicacion.view.products
 
 import android.os.Bundle
@@ -30,6 +29,7 @@ class ProductsFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        // Cargar los productos de Fakestore API
         lifecycleScope.launch {
             val products = RetrofitService.api.getProducts()
             binding.recyclerView.adapter = ProductAdapter(products)

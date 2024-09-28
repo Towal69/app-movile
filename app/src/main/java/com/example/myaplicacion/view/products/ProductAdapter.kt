@@ -1,4 +1,3 @@
-// ProductAdapter.kt
 package com.example.myaplicacion.view.products
 
 import android.view.LayoutInflater
@@ -30,7 +29,7 @@ class ProductAdapter(private val products: List<Product>) :
 
         fun bind(product: Product) {
             binding.productTitle.text = product.title
-            binding.productPrice.text = "$${product.price}"
+            binding.productPrice.text = "Precio: $${product.price}" // Precio en español
             Picasso.get().load(product.image).into(binding.productImage)
         }
     }

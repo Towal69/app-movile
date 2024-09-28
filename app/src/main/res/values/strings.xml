@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">My aplicacion</string>
+    <string name="app_name">Mi Aplicación</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="profile_icon">Icono de perfil</string>
     <string name="logout_button">Cerrar sesión</string>
-
+    <string name="product_title">Título del Producto</string>
+    <string name="product_price">Precio</string>
 </resources>
