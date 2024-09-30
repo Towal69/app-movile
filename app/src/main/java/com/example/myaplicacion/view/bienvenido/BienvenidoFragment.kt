@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myaplicacion.R
+import com.example.myaplicacion.api.Product
 import com.example.myaplicacion.api.RetrofitService
 import com.example.myaplicacion.databinding.FragmentBienvenidoBinding
 import com.example.myaplicacion.view.products.ProductAdapter
@@ -22,6 +23,8 @@ class BienvenidoFragment : Fragment() {
     private var _binding: FragmentBienvenidoBinding? = null
     private val binding get() = _binding!!
     private lateinit var auth: FirebaseAuth
+    private lateinit var allProducts: List<Product>
+    private lateinit var filteredProducts: MutableList<Product>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +58,35 @@ class BienvenidoFragment : Fragment() {
                 }
         }
 
+        // Configurar el RecyclerView
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Cargar los productos de la API FakeStore
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                allProducts = RetrofitService.api.getProducts()
+                filteredProducts = allProducts.toMutableList() // Inicialmente muestra todos los productos
+                binding.recyclerView.adapter = ProductAdapter(filteredProducts)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al cargar los productos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Configurar el SearchView para buscar productos
+        val searchItem = binding.topAppBar.menu.findItem(R.id.search)
+        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterProducts(newText ?: "")
+                return true
+            }
+        })
+
         // Configurar el botón de cierre de sesión
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -66,19 +98,19 @@ class BienvenidoFragment : Fragment() {
                 else -> false
             }
         }
-
-        // Configurar el RecyclerView
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        // Cargar los productos de la API FakeStore
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val products = RetrofitService.api.getProducts()
-                binding.recyclerView.adapter = ProductAdapter(products)
-            } catch (e: Exception) {
-                Toast.makeText(context, "Error al cargar los productos", Toast.LENGTH_SHORT).show()
+    }
+    private fun filterProducts(query: String) {
+        val filteredList = if (query.isEmpty()) {
+            allProducts // Si no hay texto, muestra todos los productos
+        } else {
+            allProducts.filter { product ->
+                product.title.contains(query, ignoreCase = true) // Filtra por título
             }
         }
+
+        filteredProducts.clear()
+        filteredProducts.addAll(filteredList)
+        binding.recyclerView.adapter?.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
     }
 
     override fun onDestroyView() {

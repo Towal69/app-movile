@@ -1,52 +1,52 @@
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
-    app:startDestination="@id/startFragment">
+    <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/nav_graph"
+        app:startDestination="@id/startFragment">
 
-    <!-- Start Fragment -->
-    <fragment
-        android:id="@+id/startFragment"
-        android:name="com.example.myaplicacion.view.start.StartFragment"
-        android:label="fragment_start"
-        tools:layout="@layout/fragment_start" >
-        <action
-            android:id="@+id/action_startFragment_to_loginFragment3"
-            app:destination="@id/loginFragment3" />
-        <action
-            android:id="@+id/action_startFragment_to_registerFragment2"
-            app:destination="@id/registerFragment2" />
-    </fragment>
+        <!-- Start Fragment -->
+        <fragment
+            android:id="@+id/startFragment"
+            android:name="com.example.myaplicacion.view.start.StartFragment"
+            android:label="fragment_start"
+            tools:layout="@layout/fragment_start" >
+            <action
+                android:id="@+id/action_startFragment_to_loginFragment3"
+                app:destination="@id/loginFragment3" />
+            <action
+                android:id="@+id/action_startFragment_to_registerFragment2"
+                app:destination="@id/registerFragment2" />
+        </fragment>
 
-    <!-- Login Fragment -->
-    <fragment
-        android:id="@+id/loginFragment3"
-        android:name="com.example.myaplicacion.view.login.LoginFragment"
-        android:label="fragment_login"
-        tools:layout="@layout/fragment_login" >
-        <action
-            android:id="@+id/action_loginFragment3_to_registerFragment2"
-            app:destination="@id/registerFragment2" />
-        <action
-            android:id="@+id/action_loginFragment3_to_bienvenidoFragment"
-            app:destination="@id/bienvenidoFragment" />
-    </fragment>
+        <!-- Login Fragment -->
+        <fragment
+            android:id="@+id/loginFragment3"
+            android:name="com.example.myaplicacion.view.login.LoginFragment"
+            android:label="fragment_login"
+            tools:layout="@layout/fragment_login" >
+            <action
+                android:id="@+id/action_loginFragment3_to_registerFragment2"
+                app:destination="@id/registerFragment2" />
+            <action
+                android:id="@+id/action_loginFragment3_to_bienvenidoFragment"
+                app:destination="@id/bienvenidoFragment" />
+        </fragment>
 
-    <!-- Register Fragment -->
-    <fragment
-        android:id="@+id/registerFragment2"
-        android:name="com.example.myaplicacion.view.register.RegisterFragment"
-        android:label="fragment_register"
-        tools:layout="@layout/fragment_register" >
-        <action
-            android:id="@+id/action_registerFragment2_to_loginFragment3"
-            app:destination="@id/loginFragment3" />
-    </fragment>
+        <!-- Register Fragment -->
+        <fragment
+            android:id="@+id/registerFragment2"
+            android:name="com.example.myaplicacion.view.register.RegisterFragment"
+            android:label="fragment_register"
+            tools:layout="@layout/fragment_register" >
+            <action
+                android:id="@+id/action_registerFragment2_to_loginFragment3"
+                app:destination="@id/loginFragment3" />
+        </fragment>
 
-    <!-- Bienvenido Fragment -->
-    <fragment
-        android:id="@+id/bienvenidoFragment"
-        android:name="com.example.myaplicacion.view.bienvenido.BienvenidoFragment"
-        android:label="fragment_bienvenido"
-        tools:layout="@layout/fragment_bienvenido" />
-</navigation>
+        <!-- Bienvenido Fragment -->
+        <fragment
+            android:id="@+id/bienvenidoFragment"
+            android:name="com.example.myaplicacion.view.bienvenido.BienvenidoFragment"
+            android:label="fragment_bienvenido"
+            tools:layout="@layout/fragment_bienvenido" />
+    </navigation>
