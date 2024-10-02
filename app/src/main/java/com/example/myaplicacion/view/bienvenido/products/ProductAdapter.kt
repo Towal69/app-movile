@@ -1,4 +1,4 @@
-package com.example.myaplicacion.view.products
+package com.example.myaplicacion.view.bienvenido.products
 
 import android.view.LayoutInflater
 import android.view.View
@@ -28,7 +28,7 @@ class ProductAdapter(private val products: List<Product>) :
         private val binding = ItemProductBinding.bind(itemView)
 
         fun bind(product: Product) {
-            binding.productTitle.text = product.title
+            binding.productTitle.text = product.title.split(" ").take(5).joinToString(" ")
             binding.productPrice.text = "Precio: $${product.price}" // Precio en español
             Picasso.get().load(product.image).into(binding.productImage)
         }

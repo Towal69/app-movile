@@ -4,7 +4,7 @@
     <style name="Theme.MyAplicacion2" parent="Theme.MaterialComponents.DayNight.NoActionBar" />
     <style name="Theme.MyAplicacion.Starting" parent="Theme.SplashScreen">
         <item name="android:windowSplashScreenBackground">@color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/fitness</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/store</item>
         <item name="android:windowSplashScreenAnimationDuration">1000</item>
         <item name="postSplashScreenTheme">@style/Theme.MyAplicacion2</item>
         </style>

@@ -1,4 +1,4 @@
-package com.example.myaplicacion.view.products
+package com.example.myaplicacion.view.bienvenido.products
 
 import android.os.Bundle
 import android.view.LayoutInflater

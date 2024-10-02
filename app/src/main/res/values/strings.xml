@@ -6,4 +6,6 @@
     <string name="logout_button">Cerrar sesión</string>
     <string name="product_title">Título del Producto</string>
     <string name="product_price">Precio</string>
+    <string name="product">Products </string>
+    <string name="home">Home </string>
 </resources>
