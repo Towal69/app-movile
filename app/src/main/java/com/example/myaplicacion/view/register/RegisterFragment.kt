@@ -1,6 +1,8 @@
 package com.example.myaplicacion.view.register
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,7 @@ import com.example.myaplicacion.R
 import com.example.myaplicacion.databinding.FragmentRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.regex.Pattern
 
 class RegisterFragment : Fragment() {
 
@@ -34,22 +37,101 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Validación de correo electrónico en tiempo real
+        binding.EmailRegisterEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val email = s.toString()
+                if (!isEmailValid(email)) {
+                    binding.EmailRegisterTextInputLayout.error = "Formato de correo inválido"
+                } else {
+                    binding.EmailRegisterTextInputLayout.error = null
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        // Validación de coincidencia de contraseñas en tiempo real
+        val passwordTextWatcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val password = binding.PasswordRegisterEditText.text.toString()
+                val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
+
+                // Validar longitud de la contraseña
+                if (password.length < 6) {
+                    binding.textViewPasswordRegister.error = "La contraseña debe tener al menos 6 caracteres"
+                } else {
+                    binding.textViewPasswordRegister.error = null
+                }
+
+                // Validar coincidencia de contraseñas
+                if (passwordRepeat.isNotEmpty() && password != passwordRepeat) {
+                    binding.textViewPasswordRepeatRegister.error = "Las contraseñas no coinciden"
+                } else {
+                    binding.textViewPasswordRepeatRegister.error = null
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
+        binding.PasswordRegisterEditText.addTextChangedListener(passwordTextWatcher)
+        binding.PasswordRepeatEditText.addTextChangedListener(passwordTextWatcher)
+
         binding.buttonRegister.setOnClickListener {
             val nombre = binding.nombreEditText.text.toString()
             val email = binding.EmailRegisterEditText.text.toString()
             val password = binding.PasswordRegisterEditText.text.toString()
             val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
 
-            if (email.isNotEmpty() && password.isNotEmpty() && password == passwordRepeat) {
+            // Limpiar los errores previos
+            clearErrors()
+
+            // Validaciones finales antes del registro
+            var valid = true
+            if (!isNotEmpty(nombre)) {
+                binding.textNombre.error = "El nombre no puede estar vacío"
+                valid = false
+            }
+            if (!isEmailValid(email)) {
+                binding.EmailRegisterTextInputLayout.error = "Formato de correo inválido"
+                valid = false
+            }
+            if (password.length < 6) {
+                binding.textViewPasswordRegister.error = "La contraseña debe tener al menos 6 caracteres"
+                valid = false
+            }
+            if (password != passwordRepeat) {
+                binding.textViewPasswordRepeatRegister.error = "Las contraseñas no coinciden"
+                valid = false
+            }
+
+            // Si todos los campos son válidos, continuar con el registro
+            if (valid) {
                 registerUser(email, password, nombre)
-            } else {
-                Toast.makeText(context, "Por favor, complete todos los campos correctamente", Toast.LENGTH_SHORT).show()
             }
         }
 
         binding.btnBack.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+    }
+
+    // Funciones de validación
+    private fun isNotEmpty(text: String): Boolean {
+        return text.trim().isNotEmpty()
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+        return Pattern.compile(emailPattern).matcher(email).matches()
+    }
+
+    private fun clearErrors() {
+        binding.textNombre.error = null
+        binding.EmailRegisterTextInputLayout.error = null
+        binding.textViewPasswordRegister.error = null
+        binding.textViewPasswordRepeatRegister.error = null
     }
 
     private fun registerUser(email: String, password: String, nombre: String) {
