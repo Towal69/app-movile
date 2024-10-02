@@ -37,32 +37,11 @@ class RegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Validación de correo electrónico en tiempo real
-        binding.EmailRegisterEditText.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                val email = s.toString()
-                if (!isEmailValid(email)) {
-                    binding.EmailRegisterTextInputLayout.error = "Formato de correo inválido"
-                } else {
-                    binding.EmailRegisterTextInputLayout.error = null
-                }
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
         // Validación de coincidencia de contraseñas en tiempo real
         val passwordTextWatcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 val password = binding.PasswordRegisterEditText.text.toString()
                 val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
-
-                // Validar longitud de la contraseña
-                if (password.length < 6) {
-                    binding.textViewPasswordRegister.error = "La contraseña debe tener al menos 6 caracteres"
-                } else {
-                    binding.textViewPasswordRegister.error = null
-                }
 
                 // Validar coincidencia de contraseñas
                 if (passwordRepeat.isNotEmpty() && password != passwordRepeat) {
@@ -75,9 +54,11 @@ class RegisterFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         }
 
+        // Agregar el TextWatcher a ambos campos
         binding.PasswordRegisterEditText.addTextChangedListener(passwordTextWatcher)
         binding.PasswordRepeatEditText.addTextChangedListener(passwordTextWatcher)
 
+        // Listener para el botón de registro
         binding.buttonRegister.setOnClickListener {
             val nombre = binding.nombreEditText.text.toString()
             val email = binding.EmailRegisterEditText.text.toString()
@@ -87,7 +68,7 @@ class RegisterFragment : Fragment() {
             // Limpiar los errores previos
             clearErrors()
 
-            // Validaciones finales antes del registro
+            // Validaciones personalizadas
             var valid = true
             if (!isNotEmpty(nombre)) {
                 binding.textNombre.error = "El nombre no puede estar vacío"
