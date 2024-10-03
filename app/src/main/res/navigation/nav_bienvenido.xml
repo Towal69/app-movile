@@ -1,18 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_bienvenido"
-    app:startDestination="@id/welcomeFragment2">
+    app:startDestination="@id/welcomeFragment">
 
     <fragment
-        android:id="@+id/welcomeFragment2"
+        android:id="@+id/welcomeFragment"
         android:name="com.example.myaplicacion.view.bienvenido.Welcome.WelcomeFragment"
-        android:label="fragment_welcome"
+        android:label="WelcomeFragment"
         tools:layout="@layout/fragment_welcome" />
+
     <fragment
-        android:id="@+id/productFragment2"
-        android:name="com.example.myaplicacion.view.bienvenido.products.ProductFragment"
-        android:label="fragment_product"
-        tools:layout="@layout/fragment_product" />
+        android:id="@+id/productsFragment"
+        android:name="com.example.myaplicacion.view.bienvenido.products.ProductsFragment"
+        android:label="ProductsFragment"
+        tools:layout="@layout/fragment_products" />
 </navigation>

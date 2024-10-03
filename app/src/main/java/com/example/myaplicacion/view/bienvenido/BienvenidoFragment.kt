@@ -63,34 +63,11 @@ class BienvenidoFragment : Fragment() {
                 }
         }
 
-        // Configurar el RecyclerView
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        val navHostFragment = childFragmentManager.findFragmentById(R.id.bienvenido_nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
+        binding.bottomNavigation.setupWithNavController(navController)
 
-        // Cargar los productos de la API FakeStore
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                allProducts = RetrofitService.api.getProducts()
-                filteredProducts = allProducts.toMutableList() // Inicialmente muestra todos los productos
-                binding.recyclerView.adapter = ProductAdapter(filteredProducts)
-            } catch (e: Exception) {
-                Toast.makeText(context, "Error al cargar los productos", Toast.LENGTH_SHORT).show()
-            }
-        }
 
-        // Configurar el SearchView para buscar productos
-        val searchItem = binding.topAppBar.menu.findItem(R.id.search)
-        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
-
-        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                filterProducts(newText ?: "")
-                return true
-            }
-        })
 
         // Configurar el botón de cierre de sesión
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
@@ -103,19 +80,7 @@ class BienvenidoFragment : Fragment() {
                 else -> false
             }
         }
-    }
-    private fun filterProducts(query: String) {
-        val filteredList = if (query.isEmpty()) {
-            allProducts // Si no hay texto, muestra todos los productos
-        } else {
-            allProducts.filter { product ->
-                product.title.contains(query, ignoreCase = true) // Filtra por título
-            }
-        }
 
-        filteredProducts.clear()
-        filteredProducts.addAll(filteredList)
-        binding.recyclerView.adapter?.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
     }
 
     override fun onDestroyView() {
