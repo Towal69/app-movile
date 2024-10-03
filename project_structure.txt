@@ -1,23 +1,27 @@
 Índice de archivos:
 ./app/src/google-services.json
-./app/src/main/res/layout/fragment_register.xml
-./app/src/main/res/layout/fragment_bienvenido.xml
-./app/src/main/res/layout/item_product.xml
-./app/src/main/res/layout/fragment_start.xml
-./app/src/main/res/layout/fragment_login.xml
-./app/src/main/res/layout/main_activity.xml
-./app/src/main/res/layout/fragment_products.xml
-./app/src/main/res/navigation/nav_graph.xml
-./app/src/main/res/menu/top_app_bar.xml
-./app/src/main/res/menu/popup_menu.xml
+./app/src/main/java/com/example/myaplicacion/api/RetrofitService.kt
 ./app/src/main/java/com/example/myaplicacion/MainActivity.kt
 ./app/src/main/java/com/example/myaplicacion/view/bienvenido/BienvenidoFragment.kt
-./app/src/main/java/com/example/myaplicacion/view/products/ProductsFragment.kt
-./app/src/main/java/com/example/myaplicacion/view/products/ProductAdapter.kt
-./app/src/main/java/com/example/myaplicacion/view/start/StartFragment.kt
-./app/src/main/java/com/example/myaplicacion/view/register/RegisterFragment.kt
 ./app/src/main/java/com/example/myaplicacion/view/login/LoginFragment.kt
-./app/src/main/java/com/example/myaplicacion/api/RetrofitService.kt
+./app/src/main/java/com/example/myaplicacion/view/products/FeaturedProductsFragment.kt
+./app/src/main/java/com/example/myaplicacion/view/products/HorizontalProductsFragment.kt
+./app/src/main/java/com/example/myaplicacion/view/products/ProductAdapter.kt
+./app/src/main/java/com/example/myaplicacion/view/products/ProductsFragment.kt
+./app/src/main/java/com/example/myaplicacion/view/register/RegisterFragment.kt
+./app/src/main/java/com/example/myaplicacion/view/start/StartFragment.kt
+./app/src/main/res/layout/fragment_bienvenido.xml
+./app/src/main/res/layout/fragment_featured_products.xml
+./app/src/main/res/layout/fragment_horizontal_products.xml
+./app/src/main/res/layout/fragment_login.xml
+./app/src/main/res/layout/fragment_products.xml
+./app/src/main/res/layout/fragment_register.xml
+./app/src/main/res/layout/fragment_start.xml
+./app/src/main/res/layout/item_product.xml
+./app/src/main/res/layout/main_activity.xml
+./app/src/main/res/menu/popup_menu.xml
+./app/src/main/res/menu/top_app_bar.xml
+./app/src/main/res/navigation/nav_graph.xml
 
 Contenido de los archivos:
 
@@ -52,6 +56,1006 @@ Archivo: ./app/src/google-services.json
   ],
   "configuration_version": "1"
 }
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/api/RetrofitService.kt
+------------------------------------------------------------
+// RetrofitService.kt
+package com.example.myaplicacion.api
+
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+
+// Definir la interfaz para la API de Fakestore
+interface FakestoreApiService {
+    @GET("products")
+    suspend fun getProducts(): List<Product>
+}
+
+// Data class para representar los productos
+data class Product(
+    val id: Int,
+    val title: String,
+    val price: Double,
+    val description: String,
+    val category: String,
+    val image: String
+)
+
+// Configurar Retrofit
+object RetrofitService {
+    private const val BASE_URL = "https://fakestoreapi.com/"
+
+    val api: FakestoreApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(FakestoreApiService::class.java)
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/MainActivity.kt
+------------------------------------------------------------
+package com.example.myaplicacion
+
+import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.myaplicacion.databinding.MainActivityBinding
+
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: MainActivityBinding
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val screenSplash = installSplashScreen()
+        super.onCreate(savedInstanceState)
+        binding =MainActivityBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        screenSplash.setKeepOnScreenCondition { false }
+    }
+
+
+}
+
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/bienvenido/BienvenidoFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.bienvenido
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.myaplicacion.R
+import com.example.myaplicacion.api.Product
+import com.example.myaplicacion.api.RetrofitService
+import com.example.myaplicacion.databinding.FragmentBienvenidoBinding
+import com.example.myaplicacion.view.products.ProductAdapter
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+
+class BienvenidoFragment : Fragment() {
+
+    private var _binding: FragmentBienvenidoBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var auth: FirebaseAuth
+    private lateinit var allProducts: List<Product>
+    private lateinit var filteredProducts: MutableList<Product>
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentBienvenidoBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val userId = auth.currentUser?.uid
+        val db = FirebaseFirestore.getInstance()
+
+        userId?.let {
+            db.collection("users").document(it)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        val nombre = document.getString("nombre")
+                        binding.topAppBar.title = "$nombre"
+                    } else {
+                        Toast.makeText(context, "Error al obtener los datos del usuario", Toast.LENGTH_SHORT).show()
+                    }
+                }
+        }
+
+        // Configurar el RecyclerView vertical
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Cargar los productos de la API FakeStore
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                allProducts = RetrofitService.api.getProducts()
+                filteredProducts = allProducts.toMutableList() // Inicialmente muestra todos los productos
+                binding.recyclerView.adapter = ProductAdapter(filteredProducts)
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al cargar los productos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Configurar el SearchView para buscar productos
+        val searchItem = binding.topAppBar.menu.findItem(R.id.search)
+        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterProducts(newText ?: "")
+                return true
+            }
+        })
+
+        // Configurar el botón de cierre de sesión
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.more -> {
+                    auth.signOut()
+                    findNavController().navigate(R.id.loginFragment3)
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Botón para ver los productos destacados
+        binding.buttonViewFeaturedProducts.setOnClickListener {
+            findNavController().navigate(R.id.action_bienvenidoFragment_to_featuredProductsFragment)
+        }
+    }
+
+    private fun filterProducts(query: String) {
+        val filteredList = if (query.isEmpty()) {
+            allProducts // Si no hay texto, muestra todos los productos
+        } else {
+            allProducts.filter { product ->
+                product.title.contains(query, ignoreCase = true) // Filtra por título
+            }
+        }
+
+        filteredProducts.clear()
+        filteredProducts.addAll(filteredList)
+        binding.recyclerView.adapter?.notifyDataSetChanged() // Notifica al adaptador que los datos han cambiado
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/login/LoginFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.login
+
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.myaplicacion.R
+import com.example.myaplicacion.databinding.FragmentLoginBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import java.util.regex.Pattern
+
+class LoginFragment : Fragment() {
+
+    private var _binding: FragmentLoginBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Initialize Firebase Auth
+        auth = Firebase.auth
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            updateUI(currentUser)
+        }
+    }
+
+    private fun updateUI(user: FirebaseUser?) {
+        if (user != null) {
+            Toast.makeText(context, "Usuario autenticado: ${user.email}", Toast.LENGTH_SHORT).show()
+            findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
+        } else {
+            Toast.makeText(context, "Por favor, inicie sesión.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentLoginBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Validación de correo electrónico en tiempo real
+        binding.EmailEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val email = s.toString()
+                if (!isEmailValid(email)) {
+                    binding.EmailTextInputLayout.error = "Formato de correo inválido"
+                } else {
+                    binding.EmailTextInputLayout.error = null
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        // Manejar el botón de inicio de sesión
+        binding.loginButton.setOnClickListener {
+            val email = binding.EmailEditText.text.toString()
+            val password = binding.PasswordEditText.text.toString()
+
+            if (email.isNotEmpty() && password.isNotEmpty()) {
+                // Validar formato de correo antes de iniciar sesión
+                if (isEmailValid(email)) {
+                    loginUser(email, password)
+                } else {
+                    Toast.makeText(context, "Formato de correo inválido", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Por favor, complete todos los campos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Manejar el botón de registro
+        binding.register.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment3_to_registerFragment2)
+        }
+    }
+
+    private fun loginUser(email: String, password: String) {
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
+                    findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
+                } else {
+                    handleLoginError(task.exception)
+                }
+            }
+    }
+
+    private fun handleLoginError(exception: Exception?) {
+        exception?.let {
+            val errorMessage = when (it) {
+                is FirebaseAuthInvalidUserException -> "El usuario no existe o ha sido deshabilitado."
+                is FirebaseAuthInvalidCredentialsException -> "Correo electrónico o contraseña incorrectos."
+                is FirebaseAuthUserCollisionException -> "El usuario ya está registrado."
+                else -> "Error al iniciar sesión. Por favor, intenta de nuevo."
+            }
+            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+        } ?: run {
+            Toast.makeText(context, "Error desconocido al iniciar sesión.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Función de validación de correo
+    private fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+        return Pattern.compile(emailPattern).matcher(email).matches()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/FeaturedProductsFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.products
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.myaplicacion.api.RetrofitService
+import com.example.myaplicacion.databinding.FragmentFeaturedProductsBinding
+import kotlinx.coroutines.launch
+
+class FeaturedProductsFragment : Fragment() {
+
+    private var _binding: FragmentFeaturedProductsBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentFeaturedProductsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Configurar el RecyclerView en modo horizontal
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+        // Cargar solo 5 productos destacados de la API
+        lifecycleScope.launch {
+            try {
+                val allProducts = RetrofitService.api.getProducts()
+                val featuredProducts = allProducts.take(5) // Tomar solo 5 productos
+                binding.recyclerView.adapter = ProductAdapter(featuredProducts)
+            } catch (e: Exception) {
+                // Manejar error al cargar los productos
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/HorizontalProductsFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.products
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.myaplicacion.api.RetrofitService
+import com.example.myaplicacion.databinding.FragmentHorizontalProductsBinding
+import kotlinx.coroutines.launch
+
+class HorizontalProductsFragment : Fragment() {
+
+    private var _binding: FragmentHorizontalProductsBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentHorizontalProductsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Configurar el RecyclerView en modo horizontal
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+
+        // Cargar los productos de la API Fakestore
+        lifecycleScope.launch {
+            val allProducts = RetrofitService.api.getProducts()
+            val featuredProducts = allProducts.take(5)
+            binding.recyclerView.adapter = ProductAdapter(featuredProducts)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductAdapter.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.products
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.example.myaplicacion.R
+import com.example.myaplicacion.api.Product
+import com.example.myaplicacion.databinding.ItemProductBinding
+import com.squareup.picasso.Picasso
+
+class ProductAdapter(private val products: List<Product>) :
+    RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_product, parent, false)
+        return ProductViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
+        holder.bind(products[position])
+    }
+
+    override fun getItemCount(): Int = products.size
+
+    class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val binding = ItemProductBinding.bind(itemView)
+
+        fun bind(product: Product) {
+            binding.productTitle.text = product.title
+            binding.productPrice.text = "Precio: $${product.price}" // Precio en español
+            Picasso.get().load(product.image).into(binding.productImage)
+        }
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductsFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.products
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.myaplicacion.api.RetrofitService
+import com.example.myaplicacion.databinding.FragmentProductsBinding
+import kotlinx.coroutines.launch
+
+class ProductsFragment : Fragment() {
+
+    private var _binding: FragmentProductsBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentProductsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Cargar los productos de Fakestore API
+        lifecycleScope.launch {
+            val products = RetrofitService.api.getProducts()
+            binding.recyclerView.adapter = ProductAdapter(products)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/register/RegisterFragment.kt
+------------------------------------------------------------
+package com.example.myaplicacion.view.register
+
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.myaplicacion.R
+import com.example.myaplicacion.databinding.FragmentRegisterBinding
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.regex.Pattern
+
+class RegisterFragment : Fragment() {
+
+    private var _binding: FragmentRegisterBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance() // Inicializar FirebaseAuth
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRegisterBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Validación de correo electrónico en tiempo real
+        binding.EmailRegisterEditText.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val email = s.toString()
+                if (!isEmailValid(email)) {
+                    binding.EmailRegisterTextInputLayout.error = "Formato de correo inválido"
+                } else {
+                    binding.EmailRegisterTextInputLayout.error = null
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        // Validación de coincidencia de contraseñas en tiempo real
+        val passwordTextWatcher = object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                val password = binding.PasswordRegisterEditText.text.toString()
+                val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
+
+                // Validar longitud de la contraseña
+                if (password.length < 6) {
+                    binding.textViewPasswordRegister.error = "La contraseña debe tener al menos 6 caracteres"
+                } else {
+                    binding.textViewPasswordRegister.error = null
+                }
+
+                // Validar coincidencia de contraseñas
+                if (passwordRepeat.isNotEmpty() && password != passwordRepeat) {
+                    binding.textViewPasswordRepeatRegister.error = "Las contraseñas no coinciden"
+                } else {
+                    binding.textViewPasswordRepeatRegister.error = null
+                }
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
+        binding.PasswordRegisterEditText.addTextChangedListener(passwordTextWatcher)
+        binding.PasswordRepeatEditText.addTextChangedListener(passwordTextWatcher)
+
+        binding.buttonRegister.setOnClickListener {
+            val nombre = binding.nombreEditText.text.toString()
+            val email = binding.EmailRegisterEditText.text.toString()
+            val password = binding.PasswordRegisterEditText.text.toString()
+            val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
+
+            // Limpiar los errores previos
+            clearErrors()
+
+            // Validaciones finales antes del registro
+            var valid = true
+            if (!isNotEmpty(nombre)) {
+                binding.textNombre.error = "El nombre no puede estar vacío"
+                valid = false
+            }
+            if (!isEmailValid(email)) {
+                binding.EmailRegisterTextInputLayout.error = "Formato de correo inválido"
+                valid = false
+            }
+            if (password.length < 6) {
+                binding.textViewPasswordRegister.error = "La contraseña debe tener al menos 6 caracteres"
+                valid = false
+            }
+            if (password != passwordRepeat) {
+                binding.textViewPasswordRepeatRegister.error = "Las contraseñas no coinciden"
+                valid = false
+            }
+
+            // Si todos los campos son válidos, continuar con el registro
+            if (valid) {
+                registerUser(email, password, nombre)
+            }
+        }
+
+        binding.btnBack.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    // Funciones de validación
+    private fun isNotEmpty(text: String): Boolean {
+        return text.trim().isNotEmpty()
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+        return Pattern.compile(emailPattern).matcher(email).matches()
+    }
+
+    private fun clearErrors() {
+        binding.textNombre.error = null
+        binding.EmailRegisterTextInputLayout.error = null
+        binding.textViewPasswordRegister.error = null
+        binding.textViewPasswordRepeatRegister.error = null
+    }
+
+    private fun registerUser(email: String, password: String, nombre: String) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Registro exitoso
+                    val userId = auth.currentUser?.uid
+                    val db = FirebaseFirestore.getInstance()
+                    val user = hashMapOf(
+                        "nombre" to nombre,
+                        "email" to email
+                    )
+
+                    userId?.let {
+                        db.collection("users").document(it)
+                            .set(user)
+                            .addOnSuccessListener {
+                                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(context, "Error al guardar los datos: $e", Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                    // Navegar a la pantalla de login o donde desees
+                    findNavController().navigate(R.id.action_registerFragment2_to_loginFragment3)
+                } else {
+                    // Si falla el registro
+                    Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/java/com/example/myaplicacion/view/start/StartFragment.kt
+------------------------------------------------------------
+// StartFragment.kt
+package com.example.myaplicacion.view.start
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import com.example.myaplicacion.R
+import com.example.myaplicacion.databinding.FragmentStartBinding
+
+class StartFragment : Fragment() {
+
+    private var _binding: FragmentStartBinding? = null
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentStartBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Navegar al fragmento de Login
+        binding.buttonLogin.setOnClickListener {
+            findNavController().navigate(R.id.action_startFragment_to_loginFragment3)
+        }
+
+        // Navegar al fragmento de Registro
+        binding.buttonRegister.setOnClickListener {
+            findNavController().navigate(R.id.action_startFragment_to_registerFragment2)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
+
+
+Archivo: ./app/src/main/res/layout/fragment_bienvenido.xml
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.bienvenido.BienvenidoFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            style="@style/Widget.MaterialComponents.Toolbar.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:menu="@menu/top_app_bar"
+            app:navigationIcon="@drawable/baseline_menu_24"
+            app:title="" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonViewFeaturedProducts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ver Productos Destacados"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/recyclerView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="ScrollView"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- Añade el RecyclerView aquí -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp" />
+
+
+
+    </androidx.core.widget.NestedScrollView>
+
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+Archivo: ./app/src/main/res/layout/fragment_featured_products.xml
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+Archivo: ./app/src/main/res/layout/fragment_horizontal_products.xml
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- RecyclerView configurado para desplazarse horizontalmente -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+Archivo: ./app/src/main/res/layout/fragment_login.xml
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.login.LoginFragment"
+    android:layout_margin="16dp"
+    >
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/textViewEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="Inicio de Sesión"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginTop="66dp"
+        android:layout_marginBottom="16dp"
+        
+        />
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/EmailTextInputLayout"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEmail"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:startIconDrawable="@drawable/baseline_email_24"
+        android:text="email"
+        android:hint="email"
+        android:layout_width="0dp"
+        android:layout_marginTop="26dp"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/EmailEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintTop_toBottomOf="@+id/EmailTextInputLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textViewPassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Password"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/EmailTextInputLayout"
+        android:hint="Password"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        app:endIconMode="password_toggle"
+        app:startIconDrawable="@drawable/baseline_lock_24">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/PasswordEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintTop_toBottomOf="@+id/textViewPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/loginButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Iniciar Sesión"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="15dp"
+        app:icon="@drawable/baseline_login_24"
+        />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/register"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:text="Registrarse"
+        android:clickable="true"
+        app:layout_constraintTop_toBottomOf="@+id/loginButton"
+        app:backgroundTint="@color/teal_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:icon="@drawable/baseline_person_add_24"
+
+        />
+
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+Archivo: ./app/src/main/res/layout/fragment_products.xml
+------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Tu RecyclerView u otros elementos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
 
 Archivo: ./app/src/main/res/layout/fragment_register.xml
 ------------------------------------------------------------
@@ -213,45 +1217,36 @@ Archivo: ./app/src/main/res/layout/fragment_register.xml
     />
 </androidx.constraintlayout.widget.ConstraintLayout>
 
-Archivo: ./app/src/main/res/layout/fragment_bienvenido.xml
+Archivo: ./app/src/main/res/layout/fragment_start.xml
 ------------------------------------------------------------
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.bienvenido.BienvenidoFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".view.start.StartFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Iniciar Sesión"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/buttonRegister"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp"/>
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
-            style="@style/Widget.MaterialComponents.Toolbar.Primary"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:menu="@menu/top_app_bar"
-            app:navigationIcon="@drawable/baseline_menu_24"
-            app:title="" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/nestedScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="ScrollView"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <!-- Aquí agregarás el contenido relacionado con los productos de Fakestore -->
-
-    </androidx.core.widget.NestedScrollView>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <Button
+        android:id="@+id/buttonRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Registrarse"
+        app:layout_constraintTop_toBottomOf="@id/buttonLogin"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
 
 
 Archivo: ./app/src/main/res/layout/item_product.xml
@@ -291,159 +1286,10 @@ Archivo: ./app/src/main/res/layout/item_product.xml
         app:layout_constraintStart_toEndOf="@+id/productImage"
         app:layout_constraintTop_toBottomOf="@+id/productTitle"
         app:layout_constraintEnd_toEndOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
-Archivo: ./app/src/main/res/layout/fragment_start.xml
-------------------------------------------------------------
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".view.start.StartFragment">
-
-    <Button
-        android:id="@+id/buttonLogin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Iniciar Sesión"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/buttonRegister"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
-
-    <Button
-        android:id="@+id/buttonRegister"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Registrarse"
-        app:layout_constraintTop_toBottomOf="@id/buttonLogin"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
-Archivo: ./app/src/main/res/layout/fragment_login.xml
-------------------------------------------------------------
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".view.login.LoginFragment"
-    android:layout_margin="16dp"
-    >
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/textViewEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:text="Inicio de Sesión"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginTop="66dp"
-        android:layout_marginBottom="16dp"
-        
-        />
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/EmailTextInputLayout"
-        app:layout_constraintTop_toBottomOf="@+id/textViewEmail"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:startIconDrawable="@drawable/baseline_email_24"
-        android:text="email"
-        android:hint="email"
-        android:layout_width="0dp"
-        android:layout_marginTop="26dp"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/EmailEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintTop_toBottomOf="@+id/EmailTextInputLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            />
-
-
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textViewPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Password"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/EmailTextInputLayout"
-        android:hint="Password"
-        android:textStyle="bold"
-        android:textSize="24sp"
-        app:endIconMode="password_toggle"
-        app:startIconDrawable="@drawable/baseline_lock_24">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/PasswordEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintTop_toBottomOf="@+id/textViewPassword"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-        />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/loginButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Iniciar Sesión"
-        app:layout_constraintTop_toBottomOf="@+id/textViewPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="15dp"
-        app:icon="@drawable/baseline_login_24"
-        />
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/register"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:text="Registrarse"
-        android:clickable="true"
-        app:layout_constraintTop_toBottomOf="@+id/loginButton"
-        app:backgroundTint="@color/teal_700"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:icon="@drawable/baseline_person_add_24"
-
-        />
-
-
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 Archivo: ./app/src/main/res/layout/main_activity.xml
 ------------------------------------------------------------
@@ -471,105 +1317,6 @@ Archivo: ./app/src/main/res/layout/main_activity.xml
 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-Archivo: ./app/src/main/res/layout/fragment_products.xml
-------------------------------------------------------------
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <!-- Tu RecyclerView u otros elementos -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
-
-Archivo: ./app/src/main/res/navigation/nav_graph.xml
-------------------------------------------------------------
-<navigation xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
-    app:startDestination="@id/startFragment">
-
-    <!-- Start Fragment -->
-    <fragment
-        android:id="@+id/startFragment"
-        android:name="com.example.myaplicacion.view.start.StartFragment"
-        android:label="fragment_start"
-        tools:layout="@layout/fragment_start" >
-        <action
-            android:id="@+id/action_startFragment_to_loginFragment3"
-            app:destination="@id/loginFragment3" />
-        <action
-            android:id="@+id/action_startFragment_to_registerFragment2"
-            app:destination="@id/registerFragment2" />
-    </fragment>
-
-    <!-- Login Fragment -->
-    <fragment
-        android:id="@+id/loginFragment3"
-        android:name="com.example.myaplicacion.view.login.LoginFragment"
-        android:label="fragment_login"
-        tools:layout="@layout/fragment_login" >
-        <action
-            android:id="@+id/action_loginFragment3_to_registerFragment2"
-            app:destination="@id/registerFragment2" />
-        <action
-            android:id="@+id/action_loginFragment3_to_bienvenidoFragment"
-            app:destination="@id/bienvenidoFragment" />
-    </fragment>
-
-    <!-- Register Fragment -->
-    <fragment
-        android:id="@+id/registerFragment2"
-        android:name="com.example.myaplicacion.view.register.RegisterFragment"
-        android:label="fragment_register"
-        tools:layout="@layout/fragment_register" >
-        <action
-            android:id="@+id/action_registerFragment2_to_loginFragment3"
-            app:destination="@id/loginFragment3" />
-    </fragment>
-
-    <!-- Bienvenido Fragment -->
-    <fragment
-        android:id="@+id/bienvenidoFragment"
-        android:name="com.example.myaplicacion.view.bienvenido.BienvenidoFragment"
-        android:label="fragment_bienvenido"
-        tools:layout="@layout/fragment_bienvenido" />
-</navigation>
-
-
-Archivo: ./app/src/main/res/menu/top_app_bar.xml
-------------------------------------------------------------
-<?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-
-    <item
-        android:id="@+id/search"
-        android:icon="@drawable/baseline_search_24"
-        android:title="search"
-        app:showAsAction="ifRoom" />
-
-    <item
-        android:id="@+id/more"
-        android:title="Exit"
-        app:showAsAction="never" />
-
-</menu>
-
-
 Archivo: ./app/src/main/res/menu/popup_menu.xml
 ------------------------------------------------------------
 <?xml version="1.0" encoding="utf-8"?>
@@ -586,492 +1333,99 @@ Archivo: ./app/src/main/res/menu/popup_menu.xml
 </menu>
 
 
-Archivo: ./app/src/main/java/com/example/myaplicacion/MainActivity.kt
+Archivo: ./app/src/main/res/menu/top_app_bar.xml
 ------------------------------------------------------------
-package com.example.myaplicacion
-
-import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.myaplicacion.databinding.MainActivityBinding
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
-class MainActivity : AppCompatActivity() {
+    <item
+        android:id="@+id/search"
+        android:icon="@drawable/baseline_search_24"
+        android:title="search"
+        app:showAsAction="ifRoom"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"/>
 
-    private lateinit var binding: MainActivityBinding
-    override fun onCreate(savedInstanceState: Bundle?) {
-        val screenSplash = installSplashScreen()
-        super.onCreate(savedInstanceState)
-        binding =MainActivityBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        screenSplash.setKeepOnScreenCondition { false }
-    }
+    <item
+        android:id="@+id/more"
+        android:title="Exit"
+        app:showAsAction="never" />
+
+</menu>
 
 
-}
-
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/bienvenido/BienvenidoFragment.kt
+Archivo: ./app/src/main/res/navigation/nav_graph.xml
 ------------------------------------------------------------
-package com.example.myaplicacion.view.bienvenido
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.example.myaplicacion.R
-import com.example.myaplicacion.databinding.FragmentBienvenidoBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-
-class BienvenidoFragment : Fragment() {
-
-    private var _binding: FragmentBienvenidoBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        auth = FirebaseAuth.getInstance()
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentBienvenidoBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val userId = auth.currentUser?.uid
-        val db = FirebaseFirestore.getInstance()
-
-        userId?.let {
-            db.collection("users").document(it)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document != null) {
-                        val nombre = document.getString("nombre")
-                        binding.topAppBar.title = "$nombre"
-                    } else {
-                        Toast.makeText(context, "Error al obtener los datos del usuario", Toast.LENGTH_SHORT).show()
-                    }
-                }
-        }
-
-        // Configurar el botón de cierre de sesión
-        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.more -> {
-                    auth.signOut()
-                    findNavController().navigate(R.id.loginFragment3)
-                    true
-                }
-                else -> false
-            }
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductsFragment.kt
-------------------------------------------------------------
-package com.example.myaplicacion.view.products
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myaplicacion.api.RetrofitService
-import com.example.myaplicacion.databinding.FragmentProductsBinding
-import kotlinx.coroutines.launch
-
-class ProductsFragment : Fragment() {
-
-    private var _binding: FragmentProductsBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentProductsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-        // Cargar los productos de Fakestore API
-        lifecycleScope.launch {
-            val products = RetrofitService.api.getProducts()
-            binding.recyclerView.adapter = ProductAdapter(products)
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/products/ProductAdapter.kt
-------------------------------------------------------------
-package com.example.myaplicacion.view.products
-
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import com.example.myaplicacion.R
-import com.example.myaplicacion.api.Product
-import com.example.myaplicacion.databinding.ItemProductBinding
-import com.squareup.picasso.Picasso
-
-class ProductAdapter(private val products: List<Product>) :
-    RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_product, parent, false)
-        return ProductViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        holder.bind(products[position])
-    }
-
-    override fun getItemCount(): Int = products.size
-
-    class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val binding = ItemProductBinding.bind(itemView)
-
-        fun bind(product: Product) {
-            binding.productTitle.text = product.title
-            binding.productPrice.text = "Precio: $${product.price}" // Precio en español
-            Picasso.get().load(product.image).into(binding.productImage)
-        }
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/start/StartFragment.kt
-------------------------------------------------------------
-// StartFragment.kt
-package com.example.myaplicacion.view.start
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.example.myaplicacion.R
-import com.example.myaplicacion.databinding.FragmentStartBinding
-
-class StartFragment : Fragment() {
-
-    private var _binding: FragmentStartBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentStartBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Navegar al fragmento de Login
-        binding.buttonLogin.setOnClickListener {
-            findNavController().navigate(R.id.action_startFragment_to_loginFragment3)
-        }
-
-        // Navegar al fragmento de Registro
-        binding.buttonRegister.setOnClickListener {
-            findNavController().navigate(R.id.action_startFragment_to_registerFragment2)
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/register/RegisterFragment.kt
-------------------------------------------------------------
-package com.example.myaplicacion.view.register
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.example.myaplicacion.R
-import com.example.myaplicacion.databinding.FragmentRegisterBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-
-class RegisterFragment : Fragment() {
-
-    private var _binding: FragmentRegisterBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        auth = FirebaseAuth.getInstance() // Inicializar FirebaseAuth
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentRegisterBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.buttonRegister.setOnClickListener {
-            val nombre = binding.nombreEditText.text.toString()
-            val email = binding.EmailRegisterEditText.text.toString()
-            val password = binding.PasswordRegisterEditText.text.toString()
-            val passwordRepeat = binding.PasswordRepeatEditText.text.toString()
-
-            if (email.isNotEmpty() && password.isNotEmpty() && password == passwordRepeat) {
-                registerUser(email, password, nombre)
-            } else {
-                Toast.makeText(context, "Por favor, complete todos los campos correctamente", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        binding.btnBack.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-    }
-
-    private fun registerUser(email: String, password: String, nombre: String) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Registro exitoso
-                    val userId = auth.currentUser?.uid
-                    val db = FirebaseFirestore.getInstance()
-                    val user = hashMapOf(
-                        "nombre" to nombre,
-                        "email" to email
-                    )
-
-                    userId?.let {
-                        db.collection("users").document(it)
-                            .set(user)
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                            .addOnFailureListener { e ->
-                                Toast.makeText(context, "Error al guardar los datos: $e", Toast.LENGTH_SHORT).show()
-                            }
-                    }
-                    // Navegar a la pantalla de login o donde desees
-                    findNavController().navigate(R.id.action_registerFragment2_to_loginFragment3)
-                } else {
-                    // Si falla el registro
-                    Toast.makeText(context, "Error: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/view/login/LoginFragment.kt
-------------------------------------------------------------
-package com.example.myaplicacion.view.login
-
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.example.myaplicacion.R
-import com.example.myaplicacion.databinding.FragmentLoginBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-
-class LoginFragment : Fragment() {
-
-    private var _binding: FragmentLoginBinding? = null
-    private val binding get() = _binding!!
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Initialize Firebase Auth
-        auth = Firebase.auth // Inicializar FirebaseAuth
-    }
-
-    public override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            updateUI(currentUser)
-        }
-    }
-
-    private fun updateUI(user: FirebaseUser?) {
-        if (user != null) {
-            // Si el usuario está autenticado
-            Toast.makeText(context, "Usuario autenticado: ${user.email}", Toast.LENGTH_SHORT).show()
-            // Aquí podrías navegar a otra pantalla si lo deseas
-            findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
-        } else {
-            // Si no hay usuario autenticado
-            Toast.makeText(context, "Por favor, inicie sesión.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentLoginBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Manejar el botón de inicio de sesión
-        binding.loginButton.setOnClickListener {
-            val email = binding.EmailEditText.text.toString()
-            val password = binding.PasswordEditText.text.toString()
-
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                loginUser(email, password)
-            } else {
-                Toast.makeText(context, "Por favor, complete todos los campos", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Manejar el botón de registro
-        binding.register.setOnClickListener {
-            findNavController().navigate(R.id.action_loginFragment3_to_registerFragment2)
-        }
-    }
-
-    private fun loginUser(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Inicio de sesión exitoso
-                    Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
-                    // Navegar a la pantalla principal o donde desees
-                    findNavController().navigate(R.id.action_loginFragment3_to_bienvenidoFragment)
-                } else {
-                    // Si falla el inicio de sesión
-                    handleLoginError(task.exception)
-                }
-            }
-    }
-
-    private fun handleLoginError(exception: Exception?) {
-        exception?.let {
-            val errorMessage = when (it) {
-                is FirebaseAuthInvalidUserException -> "El usuario no existe o ha sido deshabilitado."
-                is FirebaseAuthInvalidCredentialsException -> "Correo electrónico o contraseña incorrectos."
-                is FirebaseAuthUserCollisionException -> "El usuario ya está registrado."
-                else -> "Error al iniciar sesión. Por favor, intenta de nuevo."
-            }
-            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-        } ?: run {
-            Toast.makeText(context, "Error desconocido al iniciar sesión.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-}
-
-
-Archivo: ./app/src/main/java/com/example/myaplicacion/api/RetrofitService.kt
-------------------------------------------------------------
-// RetrofitService.kt
-package com.example.myaplicacion.api
-
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-
-// Definir la interfaz para la API de Fakestore
-interface FakestoreApiService {
-    @GET("products")
-    suspend fun getProducts(): List<Product>
-}
-
-// Data class para representar los productos
-data class Product(
-    val id: Int,
-    val title: String,
-    val price: Double,
-    val description: String,
-    val category: String,
-    val image: String
-)
-
-// Configurar Retrofit
-object RetrofitService {
-    private const val BASE_URL = "https://fakestoreapi.com/"
-
-    val api: FakestoreApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(FakestoreApiService::class.java)
-    }
-}
+    <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/nav_graph"
+        app:startDestination="@id/startFragment">
+
+        <!-- Start Fragment -->
+        <fragment
+            android:id="@+id/startFragment"
+            android:name="com.example.myaplicacion.view.start.StartFragment"
+            android:label="fragment_start"
+            tools:layout="@layout/fragment_start" >
+            <action
+                android:id="@+id/action_startFragment_to_loginFragment3"
+                app:destination="@id/loginFragment3" />
+            <action
+                android:id="@+id/action_startFragment_to_registerFragment2"
+                app:destination="@id/registerFragment2" />
+        </fragment>
+
+        <!-- Login Fragment -->
+        <fragment
+            android:id="@+id/loginFragment3"
+            android:name="com.example.myaplicacion.view.login.LoginFragment"
+            android:label="fragment_login"
+            tools:layout="@layout/fragment_login" >
+            <action
+                android:id="@+id/action_loginFragment3_to_registerFragment2"
+                app:destination="@id/registerFragment2" />
+            <action
+                android:id="@+id/action_loginFragment3_to_bienvenidoFragment"
+                app:destination="@id/bienvenidoFragment" />
+        </fragment>
+
+        <!-- Register Fragment -->
+        <fragment
+            android:id="@+id/registerFragment2"
+            android:name="com.example.myaplicacion.view.register.RegisterFragment"
+            android:label="fragment_register"
+            tools:layout="@layout/fragment_register" >
+            <action
+                android:id="@+id/action_registerFragment2_to_loginFragment3"
+                app:destination="@id/loginFragment3" />
+        </fragment>
+
+        <!-- Bienvenido Fragment -->
+        <fragment
+            android:id="@+id/bienvenidoFragment"
+            android:name="com.example.myaplicacion.view.bienvenido.BienvenidoFragment"
+            android:label="fragment_bienvenido"
+            tools:layout="@layout/fragment_bienvenido" />
+
+        <fragment android:id="@+id/horizontalProductsFragment" android:name="com.example.myaplicacion.view.products.HorizontalProductsFragment" android:label="Horizontal Products" tools:layout="@layout/fragment_horizontal_products">
+            <action android:id="@+id/action_bienvenidoFragment_to_horizontalProductsFragment" app:destination="@id/horizontalProductsFragment" />
+        </fragment>
+
+        <fragment
+            android:id="@+id/featuredProductsFragment"
+            android:name="com.example.myaplicacion.view.products.FeaturedProductsFragment"
+            android:label="Productos Destacados"
+            tools:layout="@layout/fragment_featured_products" >
+            <action
+                android:id="@+id/action_bienvenidoFragment_to_featuredProductsFragment"
+                app:destination="@id/featuredProductsFragment" />
+
+        </fragment>
+
+
+
+    </navigation>
 
 

@@ -15,4 +15,9 @@
         android:title="Exit"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/featured_products"
+        android:title="Destacados"
+        app:showAsAction="ifRoom" /> <!-- Se mostrará junto al menú hamburguesa -->
+
 </menu>

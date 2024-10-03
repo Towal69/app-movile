@@ -2,6 +2,7 @@ package com.example.myaplicacion.view.bienvenido
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -58,7 +59,7 @@ class BienvenidoFragment : Fragment() {
                 }
         }
 
-        // Configurar el RecyclerView
+        // Configurar el RecyclerView vertical
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         // Cargar los productos de la API FakeStore
@@ -87,7 +88,7 @@ class BienvenidoFragment : Fragment() {
             }
         })
 
-        // Configurar el botón de cierre de sesión
+        // Configurar el botón de cierre de sesión y productos destacados
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.more -> {
@@ -95,10 +96,16 @@ class BienvenidoFragment : Fragment() {
                     findNavController().navigate(R.id.loginFragment3)
                     true
                 }
+                R.id.featured_products -> {
+                    // Navegar a los productos destacados
+                    findNavController().navigate(R.id.action_bienvenidoFragment_to_featuredProductsFragment)
+                    true
+                }
                 else -> false
             }
         }
     }
+
     private fun filterProducts(query: String) {
         val filteredList = if (query.isEmpty()) {
             allProducts // Si no hay texto, muestra todos los productos
